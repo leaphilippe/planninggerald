@@ -23,15 +23,25 @@ export default function LoginScreen() {
   const { login } = useAuth();
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
-  const handleLogin = useCallback(() => {
-    const success = login(password);
-    if (success) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.back();
-    } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+  const handleLogin = useCallback(async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const success = await login(password);
+
+      if (success) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        router.back();
+        return;
+      }
+
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: 15, duration: 50, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: -15, duration: 50, useNativeDriver: true }),
@@ -39,9 +49,14 @@ export default function LoginScreen() {
         Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
       ]).start();
+
       Alert.alert('Erreur', 'Code administrateur incorrect');
+    } catch {
+      Alert.alert('Erreur', 'Impossible de se connecter');
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [password, login, router, shakeAnim]);
+  }, [password, login, router, shakeAnim, isSubmitting]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -61,6 +76,7 @@ export default function LoginScreen() {
           <View style={styles.iconWrap}>
             <Shield size={48} color={Colors.accent} />
           </View>
+
           <Text style={styles.title}>Mode Administrateur</Text>
           <Text style={styles.subtitle}>
             Entrez le code administrateur pour modifier le planning
@@ -77,10 +93,12 @@ export default function LoginScreen() {
               autoFocus
               onSubmitEditing={handleLogin}
               returnKeyType="go"
+              editable={!isSubmitting}
             />
             <Pressable
               style={styles.eyeBtn}
               onPress={() => setShowPassword((prev) => !prev)}
+              disabled={isSubmitting}
             >
               {showPassword ? (
                 <EyeOff size={20} color={Colors.textSecondary} />
@@ -90,8 +108,14 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
 
-          <Pressable style={styles.loginBtn} onPress={handleLogin}>
-            <Text style={styles.loginBtnText}>Se connecter</Text>
+          <Pressable
+            style={[styles.loginBtn, isSubmitting && styles.loginBtnDisabled]}
+            onPress={handleLogin}
+            disabled={isSubmitting}
+          >
+            <Text style={styles.loginBtnText}>
+              {isSubmitting ? 'Connexion...' : 'Se connecter'}
+            </Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -186,6 +210,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
+  },
+  loginBtnDisabled: {
+    opacity: 0.7,
   },
   loginBtnText: {
     fontSize: 16,
