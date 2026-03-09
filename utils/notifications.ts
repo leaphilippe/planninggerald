@@ -1,3 +1,27 @@
+import { Platform } from 'react-native';
+
+export async function configureNotificationsAsync(): Promise<void> {
+  if (Platform.OS === 'web') {
+    return;
+  }
+
+  try {
+    const Notifications = await import('expo-notifications');
+
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch {
+    // ignore
+  }
+}
+
 export async function syncWebNotificationBadge(count: number = 0): Promise<void> {
   if (typeof window === 'undefined') return;
 
@@ -16,6 +40,6 @@ export async function syncWebNotificationBadge(count: number = 0): Promise<void>
       await nav.clearAppBadge();
     }
   } catch {
-    // ignore si non supporté
+    // ignore
   }
 }
