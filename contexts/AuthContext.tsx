@@ -10,29 +10,59 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    AsyncStorage.getItem(AUTH_KEY).then((val) => {
-      if (val === 'true') {
-        setIsAdmin(true);
+    let isMounted = true;
+
+    const restoreAuth = async () => {
+      try {
+        const value = await AsyncStorage.getItem(AUTH_KEY);
+
+        if (!isMounted) return;
+
+        setIsAdmin(value === 'true');
+      } catch {
+        if (!isMounted) return;
+        setIsAdmin(false);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
+    };
+
+    restoreAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const login = useCallback((password: string): boolean => {
-    if (password === ADMIN_PASSWORD) {
-      setIsAdmin(true);
-      AsyncStorage.setItem(AUTH_KEY, 'true');
-      return true;
+  const login = useCallback(async (password: string): Promise<boolean> => {
+    if (password !== ADMIN_PASSWORD) {
+      return false;
     }
-    return false;
+
+    try {
+      await AsyncStorage.setItem(AUTH_KEY, 'true');
+      setIsAdmin(true);
+      return true;
+    } catch {
+      setIsAdmin(false);
+      return false;
+    }
   }, []);
 
-  const logout = useCallback(() => {
-    setIsAdmin(false);
-    AsyncStorage.removeItem(AUTH_KEY);
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      await AsyncStorage.removeItem(AUTH_KEY);
+    } finally {
+      setIsAdmin(false);
+    }
   }, []);
 
-  return { isAdmin, isLoading, login, logout };
+  return {
+    isAdmin,
+    isLoading,
+    login,
+    logout,
+  };
 });
