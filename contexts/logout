@@ -1,9 +1,1 @@
-const { isAdmin, logout } = useAuth();
 
-const handleAdminPress = async () => {
-  if (isAdmin) {
-    await logout();
-  } else {
-    router.push('/login');
-  }
-};
