@@ -148,15 +148,9 @@ export default function PlanningScreen() {
 
  const handleAuthPress = useCallback(async () => {
   if (isAdmin) {
-    const confirmed = window.confirm('Voulez-vous quitter le mode administrateur ?');
-    if (confirmed) {
-      await logout();
-    }
+    await logout();
     return;
   }
-
-  router.push('/login');
-}, [isAdmin, logout, router]);
 
     router.push('/login');
   }, [isAdmin, logout, router]);
