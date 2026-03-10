@@ -160,7 +160,7 @@ export default function TaskFormScreen() {
       });
     }
 
-    router.back();
+    router.replace('/(tabs)/(planning)');
   } catch (error) {
     console.error('Erreur lors de l’enregistrement de la tâche :', error);
     Alert.alert('Erreur', 'Impossible d’enregistrer la tâche');
