@@ -106,14 +106,82 @@ export default function TaskFormScreen() {
   const dates = useMemo(() => getWeekDates(weekKey), [weekKey]);
 
   const handleSave = useCallback(async () => {
+  try {
     if (!title.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir un titre');
       return;
     }
+
     if (endTimeIdx <= startTimeIdx) {
       Alert.alert('Erreur', "L'heure de fin doit être après l'heure de début");
       return;
     }
+
+    const start = TIME_OPTIONS[startTimeIdx];
+    const end = TIME_OPTIONS[endTimeIdx];
+
+    if (!start || !end) {
+      Alert.alert('Erreur', 'Horaire invalide');
+      return;
+    }
+
+    if (isSchedule && params.pendingId) {
+      await schedulePendingTask(params.pendingId, {
+        weekKey,
+        dayIndex,
+        startHour: start.hour,
+        startMinute: start.minute,
+        endHour: end.hour,
+        endMinute: end.minute,
+      });
+    } else if (isEdit && existingTask) {
+      await updateTask(existingTask.id, {
+        title: title.trim(),
+        site,
+        weekKey,
+        dayIndex,
+        startHour: start.hour,
+        startMinute: start.minute,
+        endHour: end.hour,
+        endMinute: end.minute,
+        comment: comment.trim() || undefined,
+      });
+    } else {
+      await addTask({
+        title: title.trim(),
+        site,
+        weekKey,
+        dayIndex,
+        startHour: start.hour,
+        startMinute: start.minute,
+        endHour: end.hour,
+        endMinute: end.minute,
+        comment: comment.trim() || undefined,
+      });
+    }
+
+    router.back();
+  } catch (error) {
+    console.error('Erreur lors de l’enregistrement de la tâche :', error);
+    Alert.alert('Erreur', 'Impossible d’enregistrer la tâche');
+  }
+}, [
+  title,
+  site,
+  weekKey,
+  dayIndex,
+  startTimeIdx,
+  endTimeIdx,
+  comment,
+  isEdit,
+  isSchedule,
+  existingTask,
+  params.pendingId,
+  addTask,
+  updateTask,
+  schedulePendingTask,
+  router,
+]);
 
     const start = TIME_OPTIONS[startTimeIdx];
     const end = TIME_OPTIONS[endTimeIdx];
