@@ -146,18 +146,17 @@ export default function PlanningScreen() {
     setWeekKey((previous) => navigateWeek(previous, 1));
   }, []);
 
-  const handleAuthPress = useCallback(() => {
-    if (isAdmin) {
-      Alert.alert(
-        'Déconnexion',
-        'Voulez-vous quitter le mode administrateur ?',
-        [
-          { text: 'Annuler', style: 'cancel' },
-          { text: 'Déconnexion', style: 'destructive', onPress: logout },
-        ]
-      );
-      return;
+ const handleAuthPress = useCallback(async () => {
+  if (isAdmin) {
+    const confirmed = window.confirm('Voulez-vous quitter le mode administrateur ?');
+    if (confirmed) {
+      await logout();
     }
+    return;
+  }
+
+  router.push('/login');
+}, [isAdmin, logout, router]);
 
     router.push('/login');
   }, [isAdmin, logout, router]);
