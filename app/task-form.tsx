@@ -105,7 +105,7 @@ export default function TaskFormScreen() {
   const weekNumber = getWeekNumber(weekKey);
   const dates = useMemo(() => getWeekDates(weekKey), [weekKey]);
 
-  const handleSave = useCallback(async () => {
+ const handleSave = useCallback(async () => {
   try {
     if (!title.trim()) {
       Alert.alert('Erreur', 'Veuillez saisir un titre');
@@ -182,51 +182,6 @@ export default function TaskFormScreen() {
   schedulePendingTask,
   router,
 ]);
-
-    const start = TIME_OPTIONS[startTimeIdx];
-    const end = TIME_OPTIONS[endTimeIdx];
-
-    if (isSchedule && params.pendingId) {
-      await schedulePendingTask(params.pendingId, {
-        weekKey,
-        dayIndex,
-        startHour: start.hour,
-        startMinute: start.minute,
-        endHour: end.hour,
-        endMinute: end.minute,
-      });
-    } else if (isEdit && existingTask) {
-      await updateTask(existingTask.id, {
-        title: title.trim(),
-        site,
-        weekKey,
-        dayIndex,
-        startHour: start.hour,
-        startMinute: start.minute,
-        endHour: end.hour,
-        endMinute: end.minute,
-        comment: comment.trim() || undefined,
-      });
-    } else {
-      await addTask({
-        title: title.trim(),
-        site,
-        weekKey,
-        dayIndex,
-        startHour: start.hour,
-        startMinute: start.minute,
-        endHour: end.hour,
-        endMinute: end.minute,
-        comment: comment.trim() || undefined,
-      });
-    }
-
-    router.back();
-  }, [
-    title, site, weekKey, dayIndex, startTimeIdx, endTimeIdx, comment,
-    isEdit, isSchedule, existingTask, params.pendingId,
-    addTask, updateTask, schedulePendingTask, router,
-  ]);
 
   const handleDelete = useCallback(() => {
     if (!existingTask) return;
